@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhoneCart</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding-bottom: 118px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #171717;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(0, 245, 255, 0.95), transparent 26%),
+        radial-gradient(circle at 84% 14%, rgba(255, 46, 166, 0.88), transparent 28%),
+        radial-gradient(circle at 70% 78%, rgba(184, 255, 44, 0.82), transparent 25%),
+        linear-gradient(135deg, #050716 0%, #171138 34%, #001f2f 68%, #14051f 100%);
+      background-attachment: fixed;
+    }
+
+    button {
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .page {
+      width: min(760px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 22px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      color: #ffffff;
+      background: #171717;
+      border-radius: 8px;
+      box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: #ffffff;
+      font-size: clamp(28px, 7vw, 42px);
+      line-height: 1;
+      text-shadow: 0 3px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 14px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 8px 12px;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.34);
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      overflow: hidden;
+      padding: 12px;
+      color: #171717;
+      background: #ffffff;
+      border: 3px solid var(--card-color);
+      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(17, 24, 39, 0.1);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 45px rgba(17, 24, 39, 0.14);
+    }
+
+    .phone-stage {
+      display: grid;
+      place-items: center;
+      flex: 1;
+      min-height: 0;
+      background: #ffffff;
+    }
+
+    .phone-image {
+      width: 78%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.18));
+    }
+
+    .product-title {
+      margin: 10px 0 0;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(13px, 2.8vw, 16px);
+      font-weight: 800;
+      line-height: 1.12;
+      text-align: center;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 12px 14px 18px;
+      background: rgba(255, 255, 255, 0.94);
+      border-top: 1px solid #d6e0dc;
+      box-shadow: 0 -18px 40px rgba(17, 24, 39, 0.12);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-inner {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: center;
+      width: min(640px, 100%);
+      min-height: 72px;
+      padding: 8px;
+      background: #f9fbfa;
+      border: 1px solid #dfe8e4;
+      border-radius: 8px;
+    }
+
+    .nav-button {
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      min-height: 56px;
+      color: #4b5563;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      transition: color 150ms ease, background 150ms ease;
+    }
+
+    .nav-button:hover,
+    .nav-button.is-active {
+      color: #09624e;
+      background: #e8f6f2;
+    }
+
+    .cart-button {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 68px;
+      height: 68px;
+      justify-self: center;
+      color: #ffffff;
+      background: #f47b3b;
+      border: 5px solid #ffffff;
+      border-radius: 999px;
+      box-shadow: 0 12px 24px rgba(244, 123, 59, 0.34);
+      transform: translateY(-20px);
+      transition: transform 150ms ease;
+    }
+
+    .cart-button:hover {
+      transform: translateY(-23px) scale(1.02);
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: 1px;
+      right: -3px;
+      display: grid;
+      place-items: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 6px;
+      color: #ffffff;
+      background: #171717;
+      border: 2px solid #ffffff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      background: rgba(17, 24, 39, 0.38);
+    }
+
+    .drawer-backdrop.is-open {
+      display: block;
+    }
+
+    .phone-drawer {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 50;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 72vh;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 20px 50px rgba(17, 24, 39, 0.16);
+      transform: translateY(105%);
+      transition: transform 260ms ease;
+    }
+
+    .phone-drawer.is-open {
+      transform: translateY(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #d6e0dc;
+    }
+
+    .drawer-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .drawer-subtitle {
+      margin: 5px 0 0;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      color: #171717;
+      background: #eef3f1;
+      border-radius: 8px;
+    }
+
+    .drawer-content {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      padding: 12px 0 10px;
+    }
+
+    .empty-state {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      min-height: 100%;
+      padding: 18px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #171717;
+      font-size: 20px;
+    }
+
+    .selected-phone {
+      display: grid;
+      place-items: center;
+      min-height: 118px;
+    }
+
+    .selected-phone img {
+      width: min(150px, 44vw);
+      max-height: 126px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.2));
+    }
+
+    .option-group {
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+    }
+
+    .option-label {
+      margin: 0;
+      color: #171717;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .color-options,
+    .storage-options {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .color-button {
+      width: 42px;
+      height: 42px;
+      background: var(--swatch);
+      border: 3px solid #ffffff;
+      border-radius: 999px;
+      box-shadow: 0 0 0 1px #d1d5db, 0 8px 18px rgba(17, 24, 39, 0.16);
+    }
+
+    .color-button.is-selected {
+      box-shadow: 0 0 0 3px #171717, 0 10px 22px rgba(17, 24, 39, 0.2);
+    }
+
+    .storage-button {
+      min-width: 86px;
+      min-height: 42px;
+      padding: 9px 12px;
+      color: #171717;
+      background: #eef3f1;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .storage-button.is-selected {
+      color: #ffffff;
+      background: #171717;
+      border-color: #171717;
+    }
+
+    .drawer-actions {
+      display: flex;
+      justify-content: center;
+      padding-top: 12px;
+      border-top: 1px solid #d6e0dc;
+    }
+
+    .delivery-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 76px;
+      min-width: 76px;
+      min-height: 52px;
+      padding: 12px;
+      color: #ffffff;
+      background: #0f8f6f;
+      border-radius: 999px;
+      box-shadow: 0 12px 24px rgba(15, 143, 111, 0.24);
+      transition: transform 150ms ease, background 150ms ease;
+    }
+
+    .delivery-button:hover {
+      transform: translateY(-1px);
+      background: #09624e;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 110px;
+      z-index: 80;
+      max-width: min(360px, calc(100% - 32px));
+      padding: 12px 14px;
+      color: #ffffff;
+      background: rgba(23, 23, 23, 0.94);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      transform: translate(-50%, 18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .delivery-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.68);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+
+    .delivery-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .delivery-message {
+      display: grid;
+      place-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .delivery-message img {
+      width: min(260px, 72vw);
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.45));
+      animation: driveIn 650ms ease both;
+    }
+
+    .delivery-message strong {
+      color: #ffffff;
+      font-size: clamp(24px, 7vw, 42px);
+      line-height: 1.08;
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
+    }
+
+    svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .cart-button svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    @keyframes driveIn {
+      from {
+        opacity: 0;
+        transform: translateX(-90px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        width: min(100% - 20px, 760px);
+        padding-top: 18px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 18px;
+      }
+
+      .status-pill {
+        width: 100%;
+      }
+
+      .products {
+        gap: 10px;
+      }
+
+      .product-card {
+        padding: 10px;
+      }
+
+      .phone-image {
+        width: 84%;
+      }
+
+      .nav-inner {
+        min-height: 66px;
+        padding: 6px;
+      }
+
+      .nav-button {
+        min-height: 52px;
+        font-size: 10px;
+      }
+
+      .cart-button {
+        width: 62px;
+        height: 62px;
+      }
+
+      .phone-drawer {
+        height: 76vh;
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect>
+            <path d="M10 18.5h4"></path>
+          </svg>
+        </div>
+
+        <div>
+          <h1>PhoneCart</h1>
+          <p>Choose your next phone</p>
+        </div>
+      </div>
+
+      <div class="status-pill" id="shopStatus">Ready to shop</div>
+    </header>
+
+    <section class="products" id="products" aria-label="Phone products"></section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Store navigation">
+    <div class="nav-inner">
+      <button class="nav-button is-active" type="button" data-nav="Home" aria-label="Home">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5"></path>
+          <path d="M5 10v10h14V10"></path>
+          <path d="M9 20v-6h6v6"></path>
+        </svg>
+        <span>Home</span>
+      </button>
+
+      <button class="nav-button" type="button" data-nav="Search" aria-label="Search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <span>Search</span>
+      </button>
+
+      <button class="cart-button" type="button" id="openCart" aria-label="Open cart">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6h15l-2 8H8L6 3H3"></path>
+          <circle cx="9" cy="20" r="1.7"></circle>
+          <circle cx="18" cy="20" r="1.7"></circle>
+        </svg>
+        <span class="cart-badge" id="cartCount">0</span>
+      </button>
+
+      <button class="nav-button" type="button" data-nav="Favorites" aria-label="Favorites">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s-7-4.4-9.2-9A5.3 5.3 0 0 1 12 6a5.3 5.3 0 0 1 9.2 6c-2.2 4.6-9.2 9-9.2 9Z"></path>
+        </svg>
+        <span>Likes</span>
+      </button>
+
+      <button class="nav-button" type="button" data-nav="Profile" aria-label="Profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 21a8 8 0 0 1 16 0"></path>
+        </svg>
+        <span>Profile</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <aside class="phone-drawer" id="phoneDrawer" aria-label="Phone options" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <h2 class="drawer-title" id="drawerTitle">Choose a Phone</h2>
+        <p class="drawer-subtitle" id="drawerSubtitle">Tap a phone to customize it</p>
+      </div>
+
+      <button class="icon-button" type="button" id="closeDrawer" aria-label="Close panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="drawer-content" id="drawerContent"></div>
+
+    <div class="drawer-actions">
+      <button class="delivery-button" type="button" id="deliveryButton" aria-label="Start delivery">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 7h11v10H3Z"></path>
+          <path d="M14 11h4l3 3v3h-7Z"></path>
+          <circle cx="7" cy="19" r="2"></circle>
+          <circle cx="18" cy="19" r="2"></circle>
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="delivery-overlay" id="deliveryOverlay" aria-hidden="true">
+    <div class="delivery-message">
+      <img src="https://static.vecteezy.com/system/resources/thumbnails/019/834/588/small/red-delivery-car-flat-icon-png.png" alt="Delivery car" />
+      <strong>Your phone is on the way!</strong>
+    </div>
+  </div>
+
+  <script>
+    const phones = [
+      {
+        id: 1,
+        name: "OnePlus Nord 5",
+        image: "https://image01-eu.oneplus.net/media/202506/30/cd96b8c5d2b7d10034ef5fa5d9beafb5.png?x-amz-process=image/format,webp/quality,Q_80",
+        border: "#39a6ff"
+      },
+      {
+        id: 2,
+        name: "OnePlus 15",
+        image: "https://image01-eu.oneplus.net/media/202512/05/6a170dab86cd3648d17115d7b32a8470.png?x-amz-process=image/format,webp/quality,Q_80",
+        border: "#262626"
+      },
+      {
+        id: 3,
+        name: "OnePlus Ace",
+        image: "https://image01-eu.oneplus.net/media/202510/27/338f5a8201e50d91d5d544ec1116ee18.png?x-amz-process=image/format,webp/quality,Q_80",
+        border: "#3bbf8f"
+      },
+      {
+        id: 4,
+        name: "OnePlus Pro",
+        image: "https://image01-eu.oneplus.net/media/202510/27/84bee93e851c33f9ea027b2ddd51c2b9.png?x-amz-process=image/format,webp/quality,Q_80",
+        border: "#ffb238"
+      },
+      {
+        id: 5,
+        name: "OnePlus Ultra",
+        image: "https://image01-eu.oneplus.net/media/202510/27/84bee93e851c33f9ea027b2ddd51c2b9.png?x-amz-process=image/format,webp/quality,Q_80",
+        border: "#eb4d69"
+      },
+      {
+        id: 6,
+        name: "OnePlus Audio Edition",
+        image: "https://www.pngall.com/wp-content/uploads/19/One-Plus-Phone-Premium-Audio-Experience-PNG-thumb.png",
+        border: "#7c5cff"
+      }
+    ];
+
+    const colors = [
+      { name: "Midnight", value: "#171717" },
+      { name: "Silver", value: "#e8eef5" },
+      { name: "Blue", value: "#2f80ed" }
+    ];
+
+    const storageOptions = ["128 GB", "256 GB", "512 GB"];
+
+    const state = {
+      selectedPhone: null,
+      selectedColor: colors[0],
+      selectedStorage: storageOptions[0]
+    };
+
+    const productsEl = document.querySelector("#products");
+    const cartCountEl = document.querySelector("#cartCount");
+    const phoneDrawerEl = document.querySelector("#phoneDrawer");
+    const drawerBackdropEl = document.querySelector("#drawerBackdrop");
+    const drawerContentEl = document.querySelector("#drawerContent");
+    const drawerTitleEl = document.querySelector("#drawerTitle");
+    const drawerSubtitleEl = document.querySelector("#drawerSubtitle");
+    const shopStatusEl = document.querySelector("#shopStatus");
+    const toastEl = document.querySelector("#toast");
+    const deliveryOverlayEl = document.querySelector("#deliveryOverlay");
+
+    let toastTimer;
+
+    function phoneImageMarkup(phone) {
+      return `
+        <img class="phone-image" src="${phone.image}" alt="${phone.name}" loading="lazy" />
+      `;
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("is-visible");
+      window.clearTimeout(toastTimer);
+
+      toastTimer = window.setTimeout(() => {
+        toastEl.classList.remove("is-visible");
+      }, 1700);
+    }
+
+    function renderProducts() {
+      productsEl.innerHTML = phones.map((phone) => `
+        <button class="product-card" type="button" data-phone-id="${phone.id}" style="--card-color: ${phone.border}">
+          <div class="phone-stage">
+            ${phoneImageMarkup(phone)}
+          </div>
+          <h2 class="product-title">${phone.name}</h2>
+        </button>
+      `).join("");
+    }
+
+    function renderDrawer() {
+      if (!state.selectedPhone) {
+        drawerTitleEl.textContent = "Choose a Phone";
+        drawerSubtitleEl.textContent = "Tap a phone to customize it";
+        drawerContentEl.innerHTML = `
+          <div class="empty-state">
+            <div>
+              <strong>No phone selected</strong>
+              <span>Choose a phone from the shop grid</span>
+            </div>
+          </div>
+        `;
+        cartCountEl.textContent = "0";
+        return;
+      }
+
+      cartCountEl.textContent = "1";
+      drawerTitleEl.textContent = state.selectedPhone.name;
+      drawerSubtitleEl.textContent = `${state.selectedColor.name}, ${state.selectedStorage}`;
+
+      drawerContentEl.innerHTML = `
+        <div class="selected-phone">
+          <img src="${state.selectedPhone.image}" alt="${state.selectedPhone.name}" />
+        </div>
+
+        <section class="option-group" aria-label="Color options">
+          <p class="option-label">Color</p>
+          <div class="color-options">
+            ${colors.map((color) => `
+              <button
+                class="color-button ${state.selectedColor.name === color.name ? "is-selected" : ""}"
+                type="button"
+                data-color-name="${color.name}"
+                style="--swatch: ${color.value}"
+                aria-label="${color.name}">
+              </button>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="option-group" aria-label="Storage options">
+          <p class="option-label">Storage</p>
+          <div class="storage-options">
+            ${storageOptions.map((storage) => `
+              <button
+                class="storage-button ${state.selectedStorage === storage ? "is-selected" : ""}"
+                type="button"
+                data-storage="${storage}">
+                ${storage}
+              </button>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function openDrawer() {
+      renderDrawer();
+      phoneDrawerEl.classList.add("is-open");
+      drawerBackdropEl.classList.add("is-open");
+      phoneDrawerEl.setAttribute("aria-hidden", "false");
+    }
+
+    function closeDrawer() {
+      phoneDrawerEl.classList.remove("is-open");
+      drawerBackdropEl.classList.remove("is-open");
+      phoneDrawerEl.setAttribute("aria-hidden", "true");
+    }
+
+    function closeDelivery() {
+      deliveryOverlayEl.classList.remove("is-open");
+      deliveryOverlayEl.setAttribute("aria-hidden", "true");
+    }
+
+    function selectPhone(phoneId) {
+      const phone = phones.find((item) => item.id === phoneId);
+      if (!phone) return;
+
+      state.selectedPhone = phone;
+      state.selectedColor = colors[0];
+      state.selectedStorage = storageOptions[0];
+      shopStatusEl.textContent = `${phone.name} selected`;
+      openDrawer();
+    }
+
+    function startDelivery() {
+      if (!state.selectedPhone) {
+        showToast("Choose a phone first");
+        return;
+      }
+
+      closeDrawer();
+      deliveryOverlayEl.classList.add("is-open");
+      deliveryOverlayEl.setAttribute("aria-hidden", "false");
+    }
+
+    productsEl.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-phone-id]");
+      if (!button) return;
+      selectPhone(Number(button.dataset.phoneId));
+    });
+
+    drawerContentEl.addEventListener("click", (event) => {
+      const colorButton = event.target.closest("[data-color-name]");
+      const storageButton = event.target.closest("[data-storage]");
+
+      if (colorButton) {
+        const color = colors.find((item) => item.name === colorButton.dataset.colorName);
+        if (!color) return;
+        state.selectedColor = color;
+        renderDrawer();
+      }
+
+      if (storageButton) {
+        state.selectedStorage = storageButton.dataset.storage;
+        renderDrawer();
+      }
+    });
+
+    document.querySelector("#openCart").addEventListener("click", () => {
+      if (!state.selectedPhone) {
+        showToast("Choose a phone first");
+        return;
+      }
+
+      openDrawer();
+    });
+
+    document.querySelector("#closeDrawer").addEventListener("click", closeDrawer);
+    drawerBackdropEl.addEventListener("click", closeDrawer);
+    document.querySelector("#deliveryButton").addEventListener("click", startDelivery);
+    deliveryOverlayEl.addEventListener("click", closeDelivery);
+
+    document.querySelectorAll("[data-nav]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-nav]").forEach((item) => {
+          item.classList.remove("is-active");
+        });
+
+        button.classList.add("is-active");
+        shopStatusEl.textContent = `${button.dataset.nav} selected`;
+        showToast(`${button.dataset.nav} selected`);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeDrawer();
+        closeDelivery();
+      }
+    });
+
+    renderProducts();
+    renderDrawer();
+  </script>
+</body>
+</html>
